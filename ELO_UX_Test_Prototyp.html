@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ELO – UX Test Prototyp</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    background: #F0F2F5;
+    min-height: 100vh;
+  }
+
+  /* ── DESKTOP LAYOUT ── */
+  .desktop-wrapper {
+    min-height: 100vh;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .test-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .test-header h1 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6B7280;
+    margin-bottom: 6px;
+  }
+  .test-header p {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1A3C6E;
+  }
+  .variant-labels {
+    display: flex;
+    gap: 280px;
+    margin-bottom: 12px;
+    justify-content: center;
+  }
+  .variant-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 16px;
+    border-radius: 20px;
+  }
+  .label-a { background: #FEF3C7; color: #92400E; }
+  .label-b { background: #D1FAE5; color: #065F46; }
+
+  .phones-row {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  /* ── PHONE SHELL ── */
+  .phone-shell {
+    width: 375px;
+    min-height: 812px;
+    background: #1A1A1A;
+    border-radius: 50px;
+    padding: 14px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .phone-notch {
+    width: 120px;
+    height: 30px;
+    background: #1A1A1A;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto 8px;
+    position: relative;
+    z-index: 10;
+  }
+  .phone-screen {
+    background: #FFFFFF;
+    border-radius: 38px;
+    overflow: hidden;
+    height: 760px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ── APP CHROME ── */
+  .status-bar {
+    background: #1A3C6E;
+    padding: 12px 20px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .status-time { color: white; font-size: 12px; font-weight: 600; }
+  .status-icons { color: white; font-size: 11px; display: flex; gap: 6px; align-items: center; }
+
+  .nav-bar {
+    background: #1A3C6E;
+    padding: 8px 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .nav-back {
+    color: rgba(255,255,255,0.8);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-logo {
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+    flex: 1;
+  }
+  .nav-logo span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #60A5FA;
+    border-radius: 50%;
+    margin-left: 2px;
+    vertical-align: super;
+  }
+
+  /* ── SCROLL AREA ── */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* ── ARTICLE CONTENT ── */
+  .article-content { padding: 20px 18px; }
+
+  .category-tag {
+    display: inline-block;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+
+  .article-headline {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0F172A;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .source-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+  }
+  .source-dot {
+    width: 6px; height: 6px;
+    background: #1A3C6E;
+    border-radius: 50%;
+  }
+  .meta-date { font-size: 11px; color: #94A3B8; }
+
+  .article-image {
+    width: 100%;
+    height: 160px;
+    background: linear-gradient(135deg, #1A3C6E 0%, #2E75B6 50%, #60A5FA 100%);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+  }
+  .article-image-caption {
+    padding: 10px 12px;
+    background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+    color: rgba(255,255,255,0.9);
+    font-size: 10px;
+    width: 100%;
+  }
+  .article-image-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0.15;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 20px,
+      rgba(255,255,255,0.1) 20px,
+      rgba(255,255,255,0.1) 40px
+    );
+  }
+
+  .article-body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #374151;
+    margin-bottom: 20px;
+  }
+  .article-body p { margin-bottom: 12px; }
+
+  /* ── KI SUMMARY BOX ── */
+  .ki-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .ki-divider-line { flex: 1; height: 1px; background: #E5E7EB; }
+  .ki-divider-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1A3C6E;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ki-spark { font-size: 12px; }
+
+  .ki-box {
+    background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);
+    border: 1px solid #BFDBFE;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .ki-box-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .ki-avatar {
+    width: 28px; height: 28px;
+    background: #1A3C6E;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .ki-box-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1A3C6E;
+  }
+  .ki-box-subtitle { font-size: 10px; color: #60A5FA; }
+  .ki-summary {
+    font-size: 13px;
+    line-height: 1.65;
+    color: #1E3A5F;
+  }
+
+  /* ── PROMPT STARTERS (Variante B) ── */
+  .prompt-starters {
+    margin-bottom: 14px;
+  }
+  .prompt-starters-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6B7280;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .prompt-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .prompt-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1.5px solid #BFDBFE;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1A3C6E;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    width: 100%;
+  }
+  .prompt-btn:hover {
+    background: #EFF6FF;
+    border-color: #2E75B6;
+    transform: translateY(-1px);
+  }
+  .prompt-btn:active {
+    transform: translateY(0);
+    background: #DBEAFE;
+  }
+  .prompt-btn-icon {
+    width: 28px; height: 28px;
+    background: #EFF6FF;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .prompt-btn-arrow {
+    margin-left: auto;
+    color: #93C5FD;
+    font-size: 14px;
+  }
+
+  /* ── CHAT AREA ── */
+  .chat-section {
+    background: white;
+    border-top: 1px solid #F1F5F9;
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+
+  .chat-messages {
+    max-height: 160px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scrollbar-width: none;
+  }
+  .chat-messages::-webkit-scrollbar { display: none; }
+
+  .chat-bubble {
+    padding: 9px 13px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 85%;
+    animation: bubbleIn 0.2s ease;
+  }
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .bubble-user {
+    background: #1A3C6E;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  .bubble-ai {
+    background: #F8FAFC;
+    color: #1E293B;
+    align-self: flex-start;
+    border: 1px solid #E2E8F0;
+    border-bottom-left-radius: 4px;
+  }
+  .bubble-ai-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #1A3C6E;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 9px 13px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    width: 52px;
+  }
+  .typing-dot {
+    width: 6px; height: 6px;
+    background: #94A3B8;
+    border-radius: 50%;
+    animation: typingBounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .chat-input {
+    flex: 1;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 22px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    resize: none;
+    background: #F8FAFC;
+    color: #0F172A;
+    max-height: 80px;
+    transition: border-color 0.15s;
+    line-height: 1.4;
+  }
+  .chat-input:focus { border-color: #2E75B6; background: white; }
+  .chat-input::placeholder { color: #94A3B8; }
+
+  .chat-send-btn {
+    width: 40px; height: 40px;
+    background: #1A3C6E;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    font-size: 16px;
+  }
+  .chat-send-btn:hover { background: #2E75B6; transform: scale(1.05); }
+  .chat-send-btn:active { transform: scale(0.95); }
+  .chat-send-btn:disabled { background: #CBD5E1; cursor: default; transform: none; }
+
+  .source-attribution {
+    font-size: 10px;
+    color: #94A3B8;
+    text-align: center;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  /* ── MOBILE: single screen ── */
+  .mobile-wrapper { display: none; }
+
+  @media (max-width: 900px) {
+    .desktop-wrapper { display: none; }
+    .mobile-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: white;
+    }
+    .mobile-tab-bar {
+      display: flex;
+      background: #1A3C6E;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .mobile-tab {
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .mobile-tab.active {
+      color: white;
+      border-bottom-color: #60A5FA;
+    }
+    .mobile-screen { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  }
+
+  /* ── OBSERVER PANEL ── */
+  .observer-panel {
+    margin-top: 32px;
+    max-width: 800px;
+    width: 100%;
+    background: white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    border: 1px solid #E5E7EB;
+  }
+  .observer-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6B7280;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    background: #F8FAFC;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .metric-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1A3C6E;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .metric-label { font-size: 11px; color: #6B7280; line-height: 1.3; }
+  .metric-card.variant-b .metric-value { color: #059669; }
+
+  .reset-btn {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #DC2626;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { background: #FEE2E2; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useRef, useEffect, useCallback } = React;
+
+const ARTICLE = {
+  category: "Stadtentwicklung",
+  headline: "Osnabrück plant neues Stadtquartier am Heger Tor",
+  source: "NOZ",
+  date: "14. März 2026",
+  body: [
+    "Die Stadt Osnabrück hat am Dienstag die Pläne für ein neues Stadtquartier im Bereich des ehemaligen Güterbahnhofs am Heger Tor vorgestellt. Das Projekt soll bis 2031 rund 800 neue Wohneinheiten sowie Gewerbeflächen und einen zentralen Park umfassen.",
+    "Oberbürgermeister Martin Schinke bezeichnete das Vorhaben als \"wichtigsten Schritt für die Innenentwicklung der Stadt seit Jahrzehnten\". Die Investitionskosten werden auf circa 240 Millionen Euro geschätzt, wovon ein Teil durch Bundesfördermittel finanziert werden soll.",
+  ],
+  summary: "Osnabrück plant am Heger Tor ein neues Stadtquartier mit 800 Wohnungen und Grünflächen bis 2031. Das 240-Millionen-Projekt auf dem alten Güterbahnhofsgelände soll durch Bundesfördermittel mitfinanziert werden. Der Stadtrat stimmt voraussichtlich im Mai ab. Für Anwohner ändert sich der Busverkehr ab Herbst 2026.",
+};
+
+const AI_RESPONSES = {
+  "Wer ist beteiligt?": "An dem Projekt sind die Stadt Osnabrück, das Stadtplanungsamt und mehrere private Investoren beteiligt. Oberbürgermeister Martin Schinke ist der politische Hauptverantwortliche. Die Deutsche Bahn hat das Gelände 2024 an die Stadt verkauft.",
+  "Was bedeutet das für mich?": "Wenn du in der Nähe des Heger Tors wohnst, wirst du ab 2026 Baustellenlärm und veränderte Buslinien bemerken. Für Wohnungssuchende entstehen bis 2031 neue Optionen — die Mieten sollen laut Stadtplanung auch im \"bezahlbaren Segment\" liegen. Der neue Stadtpark wird öffentlich zugänglich sein.",
+  "Gibt es Vorgeschichte?": "Das Güterbahnhofsgelände steht seit 2018 leer. Die Deutsche Bahn hatte damals den Betrieb eingestellt. Seitdem gab es mehrere gescheiterte Privatinvestoren-Pläne. Erst 2024 kaufte die Stadt das Grundstück gezielt zurück — ein ungewöhnlicher Schritt, der politisch umstritten war.",
+  "default": "Ich helfe dir gerne, den Artikel besser zu verstehen. Basierend auf dem NOZ-Bericht vom 14. März 2026 kann ich dir erklären, wer beteiligt ist, was das für Osnabrücker bedeutet, oder die Hintergründe des Projekts erläutern.",
+};
+
+function getAIResponse(question) {
+  for (const [key, value] of Object.entries(AI_RESPONSES)) {
+    if (key !== "default" && question.toLowerCase().includes(key.toLowerCase().slice(0, 8))) {
+      return value;
+    }
+  }
+  return AI_RESPONSES.default;
+}
+
+function ChatMessage({ msg }) {
+  if (msg.type === "user") {
+    return <div className="chat-bubble bubble-user">{msg.text}</div>;
+  }
+  return (
+    <div className="chat-bubble bubble-ai">
+      <div className="bubble-ai-header">⚡ ELO KI · NOZ 14.3.2026</div>
+      {msg.text}
+    </div>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <div className="typing-indicator">
+      <div className="typing-dot" />
+      <div className="typing-dot" />
+      <div className="typing-dot" />
+    </div>
+  );
+}
+
+function ArticleScreen({ variant, onChatUsed, onPromptUsed }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  const sendMessage = useCallback((text) => {
+    const trimmed = text.trim();
+    if (!trimmed || isTyping) return;
+    onChatUsed?.();
+    setMessages(prev => [...prev, { type: "user", text: trimmed }]);
+    setInput("");
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages(prev => [...prev, { type: "ai", text: getAIResponse(trimmed) }]);
+    }, 1200 + Math.random() * 600);
+  }, [isTyping, onChatUsed]);
+
+  const handlePromptClick = (text) => {
+    onPromptUsed?.();
+    sendMessage(text);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input);
+    }
+  };
+
+  const prompts = [
+    { icon: "👥", text: "Wer ist beteiligt?" },
+    { icon: "🏠", text: "Was bedeutet das für mich?" },
+    { icon: "📖", text: "Gibt es Vorgeschichte?" },
+  ];
+
+  return (
+    <>
+      {/* Status Bar */}
+      <div className="status-bar">
+        <span className="status-time">09:41</span>
+        <div className="status-icons">
+          <span>●●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <div className="nav-bar">
+        <div className="nav-back">‹</div>
+        <div className="nav-logo">ELO<span /></div>
+        <div style={{width:28}} />
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="scroll-area">
+        <div className="article-content">
+          <div className="category-tag">{ARTICLE.category}</div>
+          <h1 className="article-headline">{ARTICLE.headline}</h1>
+          <div className="article-meta">
+            <div className="source-badge">
+              <div className="source-dot" />
+              {ARTICLE.source}
+            </div>
+            <span className="meta-date">{ARTICLE.date}</span>
+          </div>
+
+          {/* Article Image */}
+          <div className="article-image">
+            <div className="article-image-overlay" />
+            <div className="article-image-caption">Heger Tor, Osnabrück — Foto: NOZ/Archiv</div>
+          </div>
+
+          {/* Article Body */}
+          <div className="article-body">
+            {ARTICLE.body.map((p, i) => <p key={i}>{p}</p>)}
+          </div>
+
+          {/* KI Summary */}
+          <div className="ki-divider">
+            <div className="ki-divider-line" />
+            <div className="ki-divider-label">
+              <span className="ki-spark">✦</span> KI-Erklärung
+            </div>
+            <div className="ki-divider-line" />
+          </div>
+
+          <div className="ki-box">
+            <div className="ki-box-header">
+              <div className="ki-avatar">✦</div>
+              <div>
+                <div className="ki-box-title">ELO Zusammenfassung</div>
+                <div className="ki-box-subtitle">Basierend auf NOZ · {ARTICLE.date}</div>
+              </div>
+            </div>
+            <div className="ki-summary">{ARTICLE.summary}</div>
+          </div>
+
+          {/* Variant B: Prompt Starters */}
+          {variant === "B" && (
+            <div className="prompt-starters">
+              <div className="prompt-starters-label">
+                <span>💬</span> Frag nach
+              </div>
+              <div className="prompt-buttons">
+                {prompts.map(p => (
+                  <button
+                    key={p.text}
+                    className="prompt-btn"
+                    onClick={() => handlePromptClick(p.text)}
+                  >
+                    <div className="prompt-btn-icon">{p.icon}</div>
+                    {p.text}
+                    <span className="prompt-btn-arrow">›</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Chat Input */}
+      <div className="chat-section">
+        {(messages.length > 0 || isTyping) && (
+          <div className="chat-messages">
+            {messages.map((msg, i) => <ChatMessage key={i} msg={msg} />)}
+            {isTyping && <TypingIndicator />}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+        <div className="chat-input-row">
+          <textarea
+            ref={inputRef}
+            className="chat-input"
+            placeholder={variant === "A" ? "Stell eine Frage..." : "Oder stell deine eigene Frage..."}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={1}
+          />
+          <button
+            className="chat-send-btn"
+            onClick={() => sendMessage(input)}
+            disabled={!input.trim() || isTyping}
+          >
+            ↑
+          </button>
+        </div>
+        <div className="source-attribution">
+          ✦ KI-Antworten basieren auf NOZ-Inhalten · {ARTICLE.date}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function App() {
+  const [stats, setStats] = useState({
+    chatA: 0, chatB: 0,
+    promptsA: 0, promptsB: 0,
+  });
+  const [mobileVariant, setMobileVariant] = useState("A");
+
+  const handleChatA = () => setStats(s => ({ ...s, chatA: s.chatA + 1 }));
+  const handleChatB = () => setStats(s => ({ ...s, chatB: s.chatB + 1 }));
+  const handlePromptB = () => setStats(s => ({ ...s, promptsB: s.promptsB + 1 }));
+
+  const reset = () => setStats({ chatA: 0, chatB: 0, promptsA: 0, promptsB: 0 });
+
+  return (
+    <>
+      {/* ── DESKTOP VIEW ── */}
+      <div className="desktop-wrapper">
+        <div className="test-header">
+          <h1>UX Test · ELO Chat-Einstieg</h1>
+          <p>Variante A — leeres Feld vs. Variante B — Prompt-Starter</p>
+        </div>
+
+        <div className="variant-labels">
+          <span className="variant-label label-a">A — Kontrollgruppe</span>
+          <span className="variant-label label-b">B — Testgruppe</span>
+        </div>
+
+        <div className="phones-row">
+          {/* Phone A */}
+          <div className="phone-shell">
+            <div className="phone-notch" />
+            <div className="phone-screen">
+              <ArticleScreen variant="A" onChatUsed={handleChatA} />
+            </div>
+          </div>
+
+          {/* Phone B */}
+          <div className="phone-shell">
+            <div className="phone-notch" />
+            <div className="phone-screen">
+              <ArticleScreen variant="B" onChatUsed={handleChatB} onPromptUsed={handlePromptB} />
+            </div>
+          </div>
+        </div>
+
+        {/* Observer Panel */}
+        <div className="observer-panel">
+          <div className="observer-title">
+            📊 Test-Beobachtungs-Panel (für Moderator)
+          </div>
+          <div className="metrics-grid">
+            <div className="metric-card">
+              <div className="metric-value">{stats.chatA}</div>
+              <div className="metric-label">Chat-Interaktionen<br/>Variante A</div>
+            </div>
+            <div className="metric-card variant-b">
+              <div className="metric-value">{stats.chatB}</div>
+              <div className="metric-label">Chat-Interaktionen<br/>Variante B</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-value">{stats.promptsB}</div>
+              <div className="metric-label">Prompt-Starter<br/>genutzt (B)</div>
+            </div>
+            <div className="metric-card variant-b">
+              <div className="metric-value">
+                {stats.chatA + stats.chatB === 0 ? "–" :
+                  Math.round((stats.chatB / Math.max(1, stats.chatA + stats.chatB)) * 100) + "%"}
+              </div>
+              <div className="metric-label">Chat-Anteil<br/>Variante B</div>
+            </div>
+          </div>
+          <button className="reset-btn" onClick={reset}>↺ Session zurücksetzen</button>
+        </div>
+      </div>
+
+      {/* ── MOBILE VIEW ── */}
+      <div className="mobile-wrapper">
+        <div className="mobile-tab-bar">
+          <div
+            className={`mobile-tab ${mobileVariant === "A" ? "active" : ""}`}
+            onClick={() => setMobileVariant("A")}
+          >
+            A – Leeres Feld
+          </div>
+          <div
+            className={`mobile-tab ${mobileVariant === "B" ? "active" : ""}`}
+            onClick={() => setMobileVariant("B")}
+          >
+            B – Prompt-Starter
+          </div>
+        </div>
+        <div className="mobile-screen">
+          <ArticleScreen
+            variant={mobileVariant}
+            onChatUsed={mobileVariant === "A" ? handleChatA : handleChatB}
+            onPromptUsed={mobileVariant === "B" ? handlePromptB : undefined}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
