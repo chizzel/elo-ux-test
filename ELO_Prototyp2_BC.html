@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ELO – Prototyp 2: Summary-first</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  background: #E8EBF0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 32px 24px 48px;
+  width: 100%;
+}
+#root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.test-header { text-align: center; margin-bottom: 20px; width: 375px; }
+.test-header-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #9CA3AF; margin-bottom: 16px;
+}
+/* ── EXTERNAL TAB SELECTOR ── */
+.ext-tabs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 24px;
+  width: 375px;
+}
+.ext-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 22px;
+  border-radius: 14px;
+  border: 1.5px solid #E2E8F0;
+  background: white;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.18s;
+  min-width: 90px;
+}
+.ext-tab:hover { border-color: #BFDBFE; background: #F8FAFC; transform: translateY(-1px); }
+.ext-tab-letter { font-size: 22px; font-weight: 900; color: #CBD5E1; line-height: 1; transition: color 0.15s; }
+.ext-tab-label  { font-size: 11px; font-weight: 600; color: #9CA3AF; transition: color 0.15s; }
+.ext-tab.sel-a { border-color: #F59E0B; background: #FFFBEB; box-shadow: 0 4px 16px rgba(245,158,11,0.18); transform: translateY(-2px); }
+.ext-tab.sel-a .ext-tab-letter { color: #D97706; }
+.ext-tab.sel-a .ext-tab-label  { color: #92400E; }
+.ext-tab.sel-b { border-color: #10B981; background: #F0FDF9; box-shadow: 0 4px 16px rgba(16,185,129,0.18); transform: translateY(-2px); }
+.ext-tab.sel-b .ext-tab-letter { color: #059669; }
+.ext-tab.sel-b .ext-tab-label  { color: #065F46; }
+.ext-tab.sel-c { border-color: #3B82F6; background: #EFF6FF; box-shadow: 0 4px 16px rgba(59,130,246,0.18); transform: translateY(-2px); }
+.ext-tab.sel-c .ext-tab-letter { color: #2563EB; }
+.ext-tab.sel-c .ext-tab-label  { color: #1E40AF; }
+.ext-tab.sel-d { border-color: #8B5CF6; background: #F5F3FF; box-shadow: 0 4px 16px rgba(139,92,246,0.18); transform: translateY(-2px); }
+.ext-tab.sel-d .ext-tab-letter { color: #7C3AED; }
+.ext-tab.sel-d .ext-tab-label  { color: #4C1D95; }
+
+/* PHONE */
+.phone-shell {
+  width: 375px;
+  background: #111;
+  border-radius: 52px;
+  padding: 14px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.07);
+}
+.phone-notch { width: 110px; height: 28px; background: #111; border-radius: 0 0 18px 18px; margin: 0 auto 6px; }
+.phone-screen { background: #fff; border-radius: 40px; overflow: hidden; height: 780px; display: flex; flex-direction: column; }
+
+/* STATUS + NAV */
+.status-bar {
+  background: #1A3C6E; padding: 11px 20px 5px;
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.status-time { color: #fff; font-size: 12px; font-weight: 700; }
+.status-icons { color: rgba(255,255,255,0.8); font-size: 10px; }
+.nav-bar {
+  background: #1A3C6E; padding: 6px 16px 12px;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.nav-back { color: rgba(255,255,255,0.7); font-size: 22px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+.nav-logo { font-size: 19px; font-weight: 900; color: #fff; letter-spacing: -0.5px; flex: 1; }
+.nav-dot { display: inline-block; width: 5px; height: 5px; background: #60A5FA; border-radius: 50%; margin-left: 1px; vertical-align: super; }
+
+/* SCROLL */
+.scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.scroll-area::-webkit-scrollbar { display: none; }
+.article-content { padding: 18px 18px 12px; }
+
+/* ARTICLE */
+.category-tag {
+  display: inline-block; background: #EFF6FF; color: #1D4ED8;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 4px; margin-bottom: 9px;
+}
+.article-headline { font-size: 19px; font-weight: 800; color: #0F172A; line-height: 1.3; margin-bottom: 10px; letter-spacing: -0.3px; }
+.article-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.source-badge {
+  display: flex; align-items: center; gap: 5px;
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px;
+  padding: 3px 9px; font-size: 11px; font-weight: 600; color: #475569;
+}
+.source-dot { width: 5px; height: 5px; background: #1A3C6E; border-radius: 50%; }
+.meta-date { font-size: 11px; color: #94A3B8; }
+.article-image {
+  width: 100%; height: 150px;
+  background: linear-gradient(135deg, #1A3C6E, #2E75B6 50%, #60A5FA);
+  border-radius: 12px; margin-bottom: 14px;
+  position: relative; overflow: hidden; display: flex; align-items: flex-end;
+}
+.article-image-overlay {
+  position: absolute; inset: 0; opacity: 0.12;
+  background: repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.1) 18px, rgba(255,255,255,0.1) 36px);
+}
+.article-image-caption {
+  padding: 8px 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+  color: rgba(255,255,255,0.9); font-size: 10px; width: 100%;
+}
+.article-body { font-size: 13.5px; line-height: 1.7; color: #374151; margin-bottom: 16px; }
+.article-body p { margin-bottom: 10px; }
+
+/* KI BOX */
+.ki-box {
+  background: linear-gradient(135deg, #EFF6FF, #F0FDF4);
+  border: 1px solid #BFDBFE; border-radius: 14px; padding: 14px; margin-bottom: 14px;
+}
+.ki-box-header { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.ki-avatar {
+  width: 26px; height: 26px; background: #1A3C6E; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0; color: white;
+}
+.ki-title { font-size: 11px; font-weight: 700; color: #1A3C6E; }
+.ki-subtitle { font-size: 10px; color: #60A5FA; }
+.ki-summary { font-size: 13px; line-height: 1.65; color: #1E3A5F; }
+
+/* ACCORDION */
+.article-accordion { margin-bottom: 14px; }
+.acc-trigger {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;
+  padding: 9px 12px; font-size: 12px; font-weight: 600; color: #475569;
+  cursor: pointer; text-align: left; font-family: inherit; transition: all 0.15s;
+}
+.acc-trigger:hover { background: #EFF6FF; border-color: #BFDBFE; color: #1A3C6E; }
+.acc-chevron { margin-left: auto; font-size: 13px; color: #94A3B8; transition: transform 0.2s; }
+.acc-chevron.open { transform: rotate(180deg); }
+.acc-body { overflow: hidden; transition: max-height 0.3s ease, opacity 0.2s; }
+.acc-body.closed { max-height: 0; opacity: 0; }
+.acc-body.open { max-height: 700px; opacity: 1; }
+.acc-inner { padding-top: 12px; }
+
+/* PROMPTS */
+.prompt-starters { margin-bottom: 14px; }
+.prompt-label { font-size: 11px; font-weight: 600; color: #6B7280; margin-bottom: 7px; display: flex; align-items: center; gap: 4px; }
+.prompt-buttons { display: flex; flex-direction: column; gap: 6px; }
+.prompt-btn {
+  display: flex; align-items: center; gap: 9px; background: white;
+  border: 1.5px solid #BFDBFE; border-radius: 10px; padding: 9px 12px;
+  font-size: 13px; font-weight: 500; color: #1A3C6E; cursor: pointer;
+  text-align: left; font-family: inherit; transition: all 0.15s; width: 100%;
+}
+.prompt-btn:hover { background: #EFF6FF; border-color: #2E75B6; transform: translateY(-1px); }
+.prompt-btn:active { transform: translateY(0); background: #DBEAFE; }
+.p-icon {
+  width: 26px; height: 26px; background: #EFF6FF; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
+}
+.p-arrow { margin-left: auto; color: #93C5FD; font-size: 14px; }
+
+/* CHAT */
+.chat-section { background: white; border-top: 1px solid #F1F5F9; padding: 10px 14px; flex-shrink: 0; }
+.chat-messages { max-height: 150px; overflow-y: auto; margin-bottom: 8px; display: flex; flex-direction: column; gap: 7px; scrollbar-width: none; }
+.chat-messages::-webkit-scrollbar { display: none; }
+.chat-bubble { padding: 8px 12px; border-radius: 13px; font-size: 13px; line-height: 1.5; max-width: 86%; animation: bubIn 0.18s ease; }
+@keyframes bubIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.bub-user { background: #1A3C6E; color: white; align-self: flex-end; border-bottom-right-radius: 3px; }
+.bub-ai { background: #F8FAFC; color: #1E293B; align-self: flex-start; border: 1px solid #E2E8F0; border-bottom-left-radius: 3px; }
+.bub-ai-label { font-size: 9px; font-weight: 700; color: #1A3C6E; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.typing-ind { display: flex; gap: 4px; align-items: center; padding: 8px 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 13px; border-bottom-left-radius: 3px; align-self: flex-start; width: 48px; }
+.t-dot { width: 5px; height: 5px; background: #94A3B8; border-radius: 50%; animation: tBounce 1.2s infinite; }
+.t-dot:nth-child(2) { animation-delay: 0.2s; }
+.t-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+.chat-row { display: flex; gap: 7px; align-items: flex-end; }
+.chat-input {
+  flex: 1; border: 1.5px solid #E2E8F0; border-radius: 20px;
+  padding: 9px 14px; font-size: 13.5px; font-family: inherit;
+  outline: none; resize: none; background: #F8FAFC; color: #0F172A;
+  max-height: 70px; line-height: 1.4; transition: border-color 0.15s;
+}
+.chat-input:focus { border-color: #2E75B6; background: white; }
+.chat-input::placeholder { color: #94A3B8; }
+.chat-send {
+  width: 38px; height: 38px; background: #1A3C6E; border: none; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 15px; color: white; transition: all 0.15s;
+}
+.chat-send:hover { background: #2E75B6; transform: scale(1.05); }
+.chat-send:active { transform: scale(0.95); }
+.chat-send:disabled { background: #CBD5E1; cursor: default; transform: none; }
+.chat-attr { font-size: 10px; color: #94A3B8; text-align: center; margin-top: 5px; }
+
+/* OBSERVER */
+.observer-panel { margin-top: 24px; width: 375px; background: white; border-radius: 16px; border: 1px solid #E5E7EB; overflow: hidden; }
+.obs-trigger {
+  display: flex; align-items: center; gap: 8px; padding: 14px 20px;
+  cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; color: #6B7280; user-select: none;
+  transition: background 0.15s; background: white; border: none;
+  width: 100%; font-family: inherit; text-align: left;
+}
+.obs-trigger:hover { background: #F9FAFB; }
+.obs-chevron { margin-left: auto; font-size: 15px; color: #9CA3AF; transition: transform 0.2s; }
+.obs-chevron.open { transform: rotate(180deg); }
+.obs-body { overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s; }
+.obs-body.closed { max-height: 0; opacity: 0; }
+.obs-body.open { max-height: 400px; opacity: 1; }
+.obs-inner { padding: 14px 20px 18px; border-top: 1px solid #F1F5F9; }
+.obs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+.obs-card { background: #F8FAFC; border-radius: 9px; padding: 10px 8px; text-align: center; }
+.obs-val { font-size: 20px; font-weight: 800; color: #1A3C6E; line-height: 1; margin-bottom: 3px; }
+.obs-label { font-size: 10px; color: #6B7280; line-height: 1.3; }
+.obs-card.green .obs-val { color: #059669; }
+.obs-card.blue .obs-val { color: #2563EB; }
+.obs-card.purple .obs-val { color: #7C3AED; }
+.obs-card.span2 { grid-column: span 2; }
+.reset-btn {
+  background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px;
+  padding: 7px 14px; font-size: 11px; font-weight: 600; color: #DC2626;
+  cursor: pointer; font-family: inherit; transition: all 0.15s; margin-top: 4px;
+}
+.reset-btn:hover { background: #FEE2E2; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect, useCallback } = React;
+
+const ARTICLE = {
+  category: "Stadtentwicklung",
+  headline: "Osnabrück plant neues Stadtquartier am Heger Tor",
+  source: "NOZ", date: "14. März 2026",
+  body: [
+    "Die Stadt Osnabrück hat am Dienstag die Pläne für ein neues Stadtquartier im Bereich des ehemaligen Güterbahnhofs am Heger Tor vorgestellt. Das Projekt soll bis 2031 rund 800 neue Wohneinheiten sowie Gewerbeflächen und einen zentralen Park umfassen.",
+    "Oberbürgermeister Martin Schinke bezeichnete das Vorhaben als \"wichtigsten Schritt für die Innenentwicklung der Stadt seit Jahrzehnten\". Die Investitionskosten werden auf circa 240 Millionen Euro geschätzt, wovon ein Teil durch Bundesfördermittel finanziert werden soll.",
+  ],
+  summary: "Osnabrück plant am Heger Tor ein neues Stadtquartier mit 800 Wohnungen und Grünflächen bis 2031. Das 240-Millionen-Projekt auf dem alten Güterbahnhofsgelände soll durch Bundesfördermittel mitfinanziert werden. Der Stadtrat stimmt voraussichtlich im Mai ab. Für Anwohner ändert sich der Busverkehr ab Herbst 2026.",
+};
+
+const AI = {
+  "Wer ist beteiligt?": "An dem Projekt sind die Stadt Osnabrück, das Stadtplanungsamt und mehrere private Investoren beteiligt. Oberbürgermeister Martin Schinke ist der politische Hauptverantwortliche. Die Deutsche Bahn hat das Gelände 2024 an die Stadt verkauft.",
+  "Was bedeutet das für mich?": "Wenn du in der Nähe des Heger Tors wohnst, wirst du ab 2026 Baustellenlärm und veränderte Buslinien bemerken. Für Wohnungssuchende entstehen bis 2031 neue Optionen — die Mieten sollen auch im bezahlbaren Segment liegen. Der neue Stadtpark wird öffentlich zugänglich sein.",
+  "Gibt es Vorgeschichte?": "Das Güterbahnhofsgelände steht seit 2018 leer. Die Deutsche Bahn hatte damals den Betrieb eingestellt. Seitdem gab es mehrere gescheiterte Privatinvestoren-Pläne. Erst 2024 kaufte die Stadt das Grundstück zurück — politisch umstritten.",
+  default: "Basierend auf dem NOZ-Bericht vom 14. März 2026 kann ich dir erklären, wer beteiligt ist, was das für Osnabrücker bedeutet, oder die Hintergründe des Projekts erläutern.",
+};
+
+function getAI(q) {
+  for (const [k,v] of Object.entries(AI)) {
+    if (k !== "default" && q.toLowerCase().includes(k.toLowerCase().slice(0,6))) return v;
+  }
+  return AI.default;
+}
+
+function ArticleHeader() {
+  return <>
+    <div className="category-tag">{ARTICLE.category}</div>
+    <h1 className="article-headline">{ARTICLE.headline}</h1>
+    <div className="article-meta">
+      <div className="source-badge"><div className="source-dot" />{ARTICLE.source}</div>
+      <span className="meta-date">{ARTICLE.date}</span>
+    </div>
+  </>;
+}
+
+function ArticleBody() {
+  return <>
+    <div className="article-image">
+      <div className="article-image-overlay" />
+      <div className="article-image-caption">Heger Tor, Osnabrück — Foto: NOZ/Archiv</div>
+    </div>
+    <div className="article-body">{ARTICLE.body.map((p,i) => <p key={i}>{p}</p>)}</div>
+  </>;
+}
+
+function KiBox() {
+  return (
+    <div className="ki-box">
+      <div className="ki-box-header">
+        <div className="ki-avatar">✦</div>
+        <div>
+          <div className="ki-title">ELO Zusammenfassung</div>
+          <div className="ki-subtitle">Basierend auf NOZ · {ARTICLE.date}</div>
+        </div>
+      </div>
+      <div className="ki-summary">{ARTICLE.summary}</div>
+    </div>
+  );
+}
+
+function Accordion() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="article-accordion">
+      <button className="acc-trigger" onClick={() => setOpen(o => !o)}>
+        <span>📰</span>
+        <span>Originalartikel lesen — NOZ</span>
+        <span className={`acc-chevron ${open ? "open":""}`}>⌄</span>
+      </button>
+      <div className={`acc-body ${open ? "open":"closed"}`}>
+        <div className="acc-inner"><ArticleBody /></div>
+      </div>
+    </div>
+  );
+}
+
+function Chat({ showPrompts, placeholder, onChat, onPrompt }) {
+  const [msgs, setMsgs] = useState([]);
+  const [input, setInput] = useState("");
+  const [typing, setTyping] = useState(false);
+  const endRef = useRef(null);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior:"smooth" }); }, [msgs, typing]);
+
+  const send = useCallback((text) => {
+    const t = text.trim();
+    if (!t || typing) return;
+    onChat?.();
+    setMsgs(p => [...p, { type:"user", text:t }]);
+    setInput("");
+    setTyping(true);
+    setTimeout(() => {
+      setTyping(false);
+      setMsgs(p => [...p, { type:"ai", text:getAI(t) }]);
+    }, 1100 + Math.random()*600);
+  }, [typing, onChat]);
+
+  const PROMPTS = [
+    { icon:"👥", text:"Wer ist beteiligt?" },
+    { icon:"🏠", text:"Was bedeutet das für mich?" },
+    { icon:"📖", text:"Gibt es Vorgeschichte?" },
+  ];
+
+  return (
+    <>
+      {showPrompts && (
+        <div className="article-content" style={{paddingTop:0,paddingBottom:0}}>
+          <div className="prompt-starters">
+            <div className="prompt-label"><span>💬</span> Frag nach</div>
+            <div className="prompt-buttons">
+              {PROMPTS.map(p => (
+                <button key={p.text} className="prompt-btn" onClick={() => { onPrompt?.(); send(p.text); }}>
+                  <div className="p-icon">{p.icon}</div>
+                  {p.text}
+                  <span className="p-arrow">›</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="chat-section">
+        {(msgs.length > 0 || typing) && (
+          <div className="chat-messages">
+            {msgs.map((m,i) => m.type==="user"
+              ? <div key={i} className="chat-bubble bub-user">{m.text}</div>
+              : <div key={i} className="chat-bubble bub-ai">
+                  <div className="bub-ai-label">⚡ ELO KI · NOZ 14.3.2026</div>{m.text}
+                </div>
+            )}
+            {typing && <div className="typing-ind"><div className="t-dot"/><div className="t-dot"/><div className="t-dot"/></div>}
+            <div ref={endRef} />
+          </div>
+        )}
+        <div className="chat-row">
+          <textarea
+            className="chat-input"
+            placeholder={placeholder}
+            value={input} rows={1}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send(input);} }}
+          />
+          <button className="chat-send" onClick={() => send(input)} disabled={!input.trim()||typing}>↑</button>
+        </div>
+        <div className="chat-attr">✦ KI-Antworten basieren auf NOZ-Inhalten · {ARTICLE.date}</div>
+      </div>
+    </>
+  );
+}
+
+function App() {
+  const [tab, setTab] = useState("B");
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [stats, setStats] = useState({ tB:0,tC:0, cB:0,cC:0, pC:0 });
+
+  const switchTab = (id) => {
+    setTab(id);
+    setStats(s => ({ ...s, [`t${id}`]: s[`t${id}`]+1 }));
+  };
+  const chat = (v) => () => setStats(s => ({ ...s, [`c${v}`]: s[`c${v}`]+1 }));
+  
+  const promptC = () => setStats(s => ({ ...s, pC: s.pC+1 }));
+  const reset = () => setStats({ tB:0,tC:0, cB:0,cC:0, pC:0 });
+
+  const total = stats.cB+stats.cC;
+
+  const TABS = [
+    { id:"B", label:"B", sub:"Summary-first",  sel:"sel-b" },
+    { id:"C", label:"C", sub:"Prompt-Starter", sel:"sel-c" },
+  ];
+
+  return (
+    <>
+      <div className="test-header">
+        <div className="test-header-label">Prototyp 2 · Chat-Einstieg-Test</div>
+      </div>
+
+      <div className="ext-tabs">
+        {TABS.map(t => (
+          <button
+            key={t.id}
+            className={`ext-tab ${tab===t.id ? t.sel : ""}`}
+            onClick={() => switchTab(t.id)}
+          >
+            <span className="ext-tab-letter">{t.label}</span>
+            <span className="ext-tab-label">{t.sub}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="phone-shell">
+        <div className="phone-notch" />
+        <div className="phone-screen">
+
+          <div className="status-bar">
+            <span className="status-time">09:41</span>
+            <span className="status-icons">●●●● WiFi 🔋</span>
+          </div>
+          <div className="nav-bar">
+            <div className="nav-back">‹</div>
+            <div className="nav-logo">ELO<span className="nav-dot"/></div>
+          </div>
+
+
+
+          {tab==="B" && (
+            <>
+              <div className="scroll-area">
+                <div className="article-content">
+                  <ArticleHeader /><KiBox /><Accordion />
+                </div>
+              </div>
+              <Chat showPrompts={false} placeholder="Stell eine Frage..." onChat={chat("B")} />
+            </>
+          )}
+
+          {tab==="C" && (
+            <>
+              <div className="scroll-area">
+                <div className="article-content">
+                  <ArticleHeader /><KiBox /><Accordion />
+                </div>
+              </div>
+              <Chat showPrompts={true} placeholder="Oder schreib deine Frage..." onChat={chat("C")} onPrompt={promptC} />
+            </>
+          )}
+
+
+
+        </div>
+      </div>
+
+      <div className="observer-panel">
+        <button className="obs-trigger" onClick={() => setPanelOpen(o => !o)}>
+          <span>📊</span>
+          <span>Moderator-Panel</span>
+          <span className={`obs-chevron ${panelOpen?"open":""}`}>⌄</span>
+        </button>
+        <div className={`obs-body ${panelOpen?"open":"closed"}`}>
+          <div className="obs-inner">
+            <div className="obs-grid">
+              <div className="obs-card">
+                <div className="obs-val">{stats.tA}</div>
+                <div className="obs-label">Tab A<br/>aufgerufen</div>
+              </div>
+              <div className="obs-card green">
+                <div className="obs-val">{stats.tB}</div>
+                <div className="obs-label">Tab B<br/>aufgerufen</div>
+              </div>
+              <div className="obs-card blue">
+                <div className="obs-val">{stats.tC}</div>
+                <div className="obs-label">Tab C<br/>aufgerufen</div>
+              </div>
+              <div className="obs-card purple">
+                <div className="obs-val">{stats.tD}</div>
+                <div className="obs-label">Tab D<br/>aufgerufen</div>
+              </div>
+              <div className="obs-card">
+                <div className="obs-val">{stats.cA}</div>
+                <div className="obs-label">Chats A</div>
+              </div>
+              <div className="obs-card green">
+                <div className="obs-val">{stats.cB}</div>
+                <div className="obs-label">Chats B</div>
+              </div>
+              <div className="obs-card blue">
+                <div className="obs-val">{stats.cC}</div>
+                <div className="obs-label">Chats C</div>
+              </div>
+              <div className="obs-card purple">
+                <div className="obs-val">{stats.cD}</div>
+                <div className="obs-label">Chats D</div>
+              </div>
+              <div className="obs-card blue">
+                <div className="obs-val">{stats.pC}</div>
+                <div className="obs-label">Prompts C</div>
+              </div>
+              <div className="obs-card purple">
+                <div className="obs-val">{stats.pD}</div>
+                <div className="obs-label">Prompts D</div>
+              </div>
+              <div className="obs-card green span2">
+                <div className="obs-val">{total===0?"–":Math.round(((stats.cB+stats.cC+stats.cD)/total)*100)+"%"}</div>
+                <div className="obs-label">Chat B+C+D vs. gesamt</div>
+              </div>
+            </div>
+            <button className="reset-btn" onClick={reset}>↺ Session zurücksetzen</button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
